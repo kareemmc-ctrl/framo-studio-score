@@ -1,36 +1,593 @@
-# Framo Studio — Checklist Interactive
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Diagnostic gratuit — Calculez le score de votre site et découvrez combien vous perdez chaque mois.">
+<title>Combien votre site vous coûte-t-il ? — Framo Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --fond:#F6EEE2;--surface:#EAE0D0;--surface2:#DDD3C3;
+  --encre:#1A080A;--accent:#8C1A2A;--accent-lt:#B03040;
+  --muted:#806060;--muted-lt:#C4AEA8;--white:#FFFFFF;
+  --dark:#1A080A;--line:rgba(26,8,10,0.1);
+  --ai:#1A2A4A;--ai-lt:#2A4A7A;--ai-accent:#4A90D9;
+}
+html{scroll-behavior:smooth}
+body{background:var(--fond);color:var(--encre);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;min-height:100vh}
 
-**Diagnostic gratuit : "Mon site mérite-t-il des clients ?"**
+.topbar{position:sticky;top:0;z-index:100;background:var(--dark);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06)}
+.topbar-logo{display:flex;align-items:center;gap:10px}
+.logo-badge{width:32px;height:32px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:600;color:var(--fond)}
+.logo-name{font-size:11px;font-weight:500;color:rgba(246,238,226,0.8);letter-spacing:.5px;text-transform:uppercase}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.score-pill{display:flex;align-items:center;gap:6px;background:rgba(246,238,226,0.06);border:1px solid rgba(246,238,226,0.1);border-radius:99px;padding:5px 12px}
+.score-pill-label{font-size:10px;color:rgba(246,238,226,0.45);text-transform:uppercase;letter-spacing:.8px}
+.score-pill-value{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;color:var(--fond);transition:all .4s;min-width:30px;text-align:right}
+.score-pill-max{font-size:10px;color:rgba(246,238,226,0.35)}
+.loss-pill{display:flex;align-items:center;gap:6px;background:rgba(140,26,42,0.15);border:1px solid rgba(140,26,42,0.3);border-radius:99px;padding:5px 12px}
+.loss-pill-label{font-size:10px;color:rgba(176,48,64,0.7);text-transform:uppercase;letter-spacing:.8px}
+.loss-pill-value{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:#E05060;transition:all .4s;min-width:60px}
 
-Page web interactive qui calcule un score sur 100 en temps réel selon les réponses à 20 critères.
+.hero{background:var(--dark);padding:52px 24px 44px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 50% 120%,rgba(140,26,42,.22) 0%,transparent 70%);pointer-events:none}
+.hero-tag{display:inline-block;background:rgba(140,26,42,.2);border:1px solid rgba(140,26,42,.4);color:var(--accent-lt);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:4px 14px;border-radius:99px;margin-bottom:22px}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,5vw,50px);font-weight:600;color:var(--fond);line-height:1.1;margin-bottom:14px;position:relative}
+.hero h1 em{color:var(--accent-lt);font-style:italic}
+.hero-sub{font-size:14px;color:rgba(246,238,226,.5);max-width:440px;margin:0 auto 28px;font-weight:300}
 
-## 🎯 Fonctionnement
+.gauge-wrap{display:inline-flex;flex-direction:column;align-items:center;gap:2px}
+.gauge-svg{width:148px;height:84px;overflow:visible}
+.gauge-score-text{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:600;fill:var(--fond);transition:all .4s}
+#gauge-arc-fill{transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1);stroke-linecap:round}
+.gauge-sub{font-size:10px;color:rgba(246,238,226,.3);letter-spacing:1px;text-transform:uppercase}
 
-- 5 catégories × 4 critères × 5 pts = **100 points**
-- Score mis à jour instantanément à chaque case cochée
-- Jauge animée + diagnostic personnalisé selon le niveau
-- 4 niveaux : Excellent / Bien / À améliorer / Urgent
+.ca-hero-block{display:inline-flex;flex-direction:column;align-items:center;gap:8px;margin-top:24px;background:rgba(246,238,226,.04);border:1px solid rgba(246,238,226,.07);border-radius:12px;padding:16px 26px}
+.ca-label{font-size:11px;color:rgba(246,238,226,.4);text-transform:uppercase;letter-spacing:.8px}
+.ca-slider-row{display:flex;align-items:center;gap:12px;width:260px}
+.ca-slider{flex:1;-webkit-appearance:none;height:3px;background:rgba(246,238,226,.12);border-radius:99px;outline:none;cursor:pointer}
+.ca-slider::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--accent-lt);cursor:pointer}
+.ca-value{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--fond);min-width:68px;text-align:right}
+.ca-hint{font-size:10px;color:rgba(246,238,226,.25);font-weight:300}
 
-## 🚀 Hébergement GitHub Pages
+.hero-sectors{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+.sector-tag{background:rgba(246,238,226,.04);border:1px solid rgba(246,238,226,.07);color:rgba(246,238,226,.4);font-size:10px;padding:3px 10px;border-radius:99px}
 
-Ce repo est configuré pour GitHub Pages.
+.global-progress{position:sticky;top:52px;z-index:90;background:var(--fond);padding:7px 0;border-bottom:1px solid var(--line)}
+.progress-inner{max-width:740px;margin:0 auto;padding:0 20px}
+.progress-track{height:3px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:99px;width:0%;transition:width .4s}
+.progress-info{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--muted)}
 
-**Activer GitHub Pages :**
-1. Settings → Pages
-2. Source : `Deploy from a branch`
-3. Branch : `main` / `root`
-4. Save → URL disponible en ~30 secondes
+.main{max-width:740px;margin:0 auto;padding:0 20px 80px}
 
-## 🎨 DA Framo Studio
+.impact-banner{background:var(--dark);border-radius:12px;padding:18px 24px;margin:24px 0 0;display:grid;grid-template-columns:1fr 1px 1fr;gap:0;position:relative;overflow:hidden}
+.impact-banner::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 40% 60% at 10% 50%,rgba(140,26,42,.18) 0%,transparent 60%);pointer-events:none}
+.impact-div{background:rgba(246,238,226,.06)}
+.impact-card{padding:0 20px;text-align:center;position:relative}
+.impact-card-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;font-weight:500}
+.impact-card.loss .impact-card-label{color:rgba(224,80,96,.6)}
+.impact-card.gain .impact-card-label{color:rgba(74,217,144,.6)}
+.impact-card-value{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;line-height:1;transition:all .4s}
+.impact-card.loss .impact-card-value{color:#E05060}
+.impact-card.gain .impact-card-value{color:#4AD990}
+.impact-card-sub{font-size:10px;color:rgba(246,238,226,.25);margin-top:4px;font-weight:300}
 
-Palette : Lin & Grenat
-- Fond `#F6EEE2`
-- Accent `#8C1A2A`
-- Encre `#1A080A`
+.category{margin-top:42px}
+.cat-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.cat-num{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:var(--fond);flex-shrink:0}
+.cat-num.regular{background:var(--accent)}
+.cat-num.ai-num-bg{background:var(--ai-lt)}
+.cat-title-block{flex:1}
+.cat-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--encre);line-height:1.2}
+.cat-title.ai-t{color:var(--ai)}
+.cat-sub{font-size:12px;color:var(--muted);margin-top:2px;font-weight:300}
+.cat-score-badge{border:1px solid var(--line);border-radius:8px;padding:5px 10px;text-align:center;min-width:52px}
+.cat-score-badge.regular{background:var(--surface)}
+.cat-score-badge.ai-b{background:rgba(26,42,74,.06);border-color:rgba(74,144,217,.2)}
+.cat-s-num{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;display:block;transition:all .3s}
+.cat-s-num.regular{color:var(--accent)}
+.cat-s-num.ai-c{color:var(--ai-accent)}
+.cat-s-max{font-size:10px;color:var(--muted);display:block}
+.cat-prog{height:2px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-bottom:12px}
+.cat-prog-fill{height:100%;border-radius:99px;width:0%;transition:width .4s}
+.cat-prog-fill.regular{background:var(--accent)}
+.cat-prog-fill.ai-f{background:var(--ai-accent)}
 
-## 📧 Intégration Brevo
+.ai-badge-row{display:flex;align-items:center;gap:6px;margin-bottom:11px}
+.ai-section-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(26,42,74,.07);border:1px solid rgba(74,144,217,.18);border-radius:99px;padding:4px 12px;font-size:11px;color:var(--ai-lt);letter-spacing:.3px}
+.ai-dot{width:6px;height:6px;background:var(--ai-accent);border-radius:50%;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.75)}}
 
-URL à coller dans le bouton CTA de la séquence email :
-```
-https://[ton-pseudo].github.io/framo-checklist/
-```
+.check-item{display:flex;align-items:flex-start;gap:13px;padding:13px 15px;background:var(--white);border:1px solid var(--line);border-radius:10px;margin-bottom:7px;cursor:pointer;transition:all .2s;user-select:none;position:relative;overflow:hidden;animation:fadeUp .28s ease both}
+.check-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--surface2);transition:background .25s}
+.check-item:hover{border-color:rgba(140,26,42,.2);transform:translateX(2px)}
+.check-item.checked{background:rgba(140,26,42,.03);border-color:rgba(140,26,42,.22)}
+.check-item.checked::before{background:var(--accent)}
+.check-item.ai-item:hover{border-color:rgba(74,144,217,.22)}
+.check-item.ai-item.checked{background:rgba(74,144,217,.04);border-color:rgba(74,144,217,.28)}
+.check-item.ai-item.checked::before{background:var(--ai-accent)}
+.check-box{width:21px;height:21px;border:1.5px solid var(--muted-lt);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .2s;background:var(--white)}
+.check-item.checked .check-box{background:var(--accent);border-color:var(--accent)}
+.check-item.ai-item.checked .check-box{background:var(--ai-accent);border-color:var(--ai-accent)}
+.chk-icon{opacity:0;transform:scale(.5);transition:all .2s cubic-bezier(.34,1.56,.64,1)}
+.check-item.checked .chk-icon{opacity:1;transform:scale(1)}
+.check-content{flex:1}
+.check-text{font-size:13.5px;color:var(--encre);font-weight:400;line-height:1.5}
+.check-meta{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
+.check-pts{font-size:11px;color:var(--muted);font-weight:300;transition:color .2s}
+.check-item.checked .check-pts{color:var(--accent);font-weight:500}
+.check-item.ai-item.checked .check-pts{color:var(--ai-accent)}
+.check-loss{font-size:10px;color:rgba(180,50,60,.65);background:rgba(180,50,60,.07);padding:2px 7px;border-radius:99px;transition:opacity .25s;white-space:nowrap}
+.check-item.checked .check-loss{opacity:0}
+
+.results{margin-top:56px;opacity:0;transform:translateY(14px);transition:all .55s ease;pointer-events:none}
+.results.visible{opacity:1;transform:translateY(0);pointer-events:all}
+.result-header{text-align:center;margin-bottom:24px}
+.result-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--encre);margin-bottom:5px}
+.result-subtitle{font-size:13px;color:var(--muted);font-weight:300}
+
+.score-display{background:var(--dark);border-radius:14px;padding:34px 26px;text-align:center;margin-bottom:14px;position:relative;overflow:hidden}
+.score-display::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 50% 60% at 50% 100%,rgba(140,26,42,.25) 0%,transparent 70%)}
+.score-big-num{font-family:'Cormorant Garamond',serif;font-size:78px;font-weight:600;color:var(--fond);line-height:1;position:relative;transition:all .4s}
+.score-big-num span{font-size:24px;color:rgba(246,238,226,.4);vertical-align:super}
+.score-level-badge{display:inline-block;padding:5px 18px;border-radius:99px;font-size:11px;font-weight:500;letter-spacing:.5px;margin-top:10px;position:relative;transition:all .4s;border:1px solid transparent}
+.score-level-desc{font-size:13px;color:rgba(246,238,226,.5);margin-top:11px;max-width:400px;margin-left:auto;margin-right:auto;font-weight:300;position:relative;line-height:1.6}
+
+.ca-result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.ca-result-card{border-radius:12px;padding:16px;text-align:center}
+.ca-result-card.loss-card{background:rgba(140,26,42,.07);border:1px solid rgba(140,26,42,.18)}
+.ca-result-card.gain-card{background:rgba(42,107,63,.07);border:1px solid rgba(42,107,63,.18)}
+.ca-result-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;font-weight:500;margin-bottom:5px}
+.ca-result-card.loss-card .ca-result-label{color:rgba(140,26,42,.7)}
+.ca-result-card.gain-card .ca-result-label{color:rgba(42,107,63,.7)}
+.ca-result-num{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;line-height:1;transition:all .4s}
+.ca-result-card.loss-card .ca-result-num{color:var(--accent)}
+.ca-result-card.gain-card .ca-result-num{color:#2A6B3F}
+.ca-result-sub{font-size:10px;color:var(--muted);margin-top:4px;font-weight:300;line-height:1.4}
+.ca-note{font-size:10px;color:var(--muted);text-align:center;margin-bottom:14px;font-style:italic}
+
+.cat-recap{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.recap-card{background:var(--white);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.recap-card-top{display:flex;align-items:flex-start;justify-content:space-between}
+.recap-cat-name{font-size:11px;color:var(--encre);font-weight:500}
+.recap-cat-sub{font-size:9px;color:var(--muted);margin-top:2px}
+.recap-score{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600}
+.recap-score.regular{color:var(--accent)}
+.recap-score.ai-s{color:var(--ai-accent)}
+.recap-score .max{font-size:11px;color:var(--muted-lt)}
+.recap-bar{height:2px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:8px}
+.recap-bar-fill{height:100%;border-radius:99px;transition:width .6s}
+.recap-bar-fill.regular{background:var(--accent)}
+.recap-bar-fill.ai-bar{background:var(--ai-accent)}
+
+.priority-hint{background:rgba(140,26,42,.06);border:1px solid rgba(140,26,42,.14);border-radius:10px;padding:14px 18px;margin-bottom:14px}
+.priority-hint-title{font-size:11px;font-weight:500;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
+.priority-hint-text{font-size:13px;color:var(--encre);font-weight:300;line-height:1.6}
+
+.ai-upsell{background:linear-gradient(135deg,#1A2A4A 0%,#0D1829 100%);border:1px solid rgba(74,144,217,.18);border-radius:12px;padding:18px 20px;margin-bottom:14px}
+.ai-upsell-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.ai-upsell-dot{width:7px;height:7px;background:var(--ai-accent);border-radius:50%}
+.ai-upsell-title{font-size:13px;font-weight:500;color:rgba(200,220,246,.88)}
+.ai-upsell-body{font-size:12px;color:rgba(200,220,246,.45);line-height:1.6;font-weight:300}
+.ai-upsell-gains{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.ai-gain-item{background:rgba(74,144,217,.06);border:1px solid rgba(74,144,217,.1);border-radius:7px;padding:9px 11px}
+.ai-gain-val{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--ai-accent)}
+.ai-gain-label{font-size:10px;color:rgba(200,220,246,.4);margin-top:1px;line-height:1.3}
+
+.cta-block{background:var(--dark);border-radius:14px;padding:32px 26px;text-align:center;position:relative;overflow:hidden}
+.cta-block::before{content:'';position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);width:280px;height:110px;background:radial-gradient(ellipse,rgba(140,26,42,.3) 0%,transparent 70%)}
+.cta-headline{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600;color:var(--fond);margin-bottom:7px;position:relative}
+.cta-sub{font-size:13px;color:rgba(246,238,226,.4);font-weight:300;margin-bottom:6px;position:relative}
+.cta-ca-hook{font-size:14px;color:#E05060;font-weight:500;margin-bottom:20px;position:relative}
+.cta-btn{display:inline-flex;align-items:center;gap:9px;background:var(--accent);color:var(--fond);border:none;border-radius:8px;padding:13px 24px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;text-decoration:none;position:relative;letter-spacing:.3px}
+.cta-btn:hover{background:var(--accent-lt);transform:translateY(-1px)}
+.cta-btn:active{transform:translateY(0)}
+.cta-reassurance{margin-top:11px;font-size:10px;color:rgba(246,238,226,.22);position:relative;letter-spacing:.3px}
+
+footer{background:var(--dark);padding:20px;text-align:center;font-size:10px;color:rgba(246,238,226,.18);letter-spacing:.5px;border-top:1px solid rgba(246,238,226,.04);margin-top:40px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:540px){
+  .cat-recap,.ca-result-grid,.ai-upsell-gains,.impact-banner{grid-template-columns:1fr}
+  .impact-div{display:none}
+  .hero h1{font-size:27px}
+  .score-big-num{font-size:62px}
+  .topbar-right .loss-pill{display:none}
+  .ca-slider-row{width:200px}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-badge">FS</div>
+    <span class="logo-name">Framo Studio</span>
+  </div>
+  <div class="topbar-right">
+    <div class="loss-pill">
+      <span class="loss-pill-label">Perdu / mois</span>
+      <span class="loss-pill-value" id="topbar-loss">—</span>
+    </div>
+    <div class="score-pill">
+      <span class="score-pill-label">Score</span>
+      <span class="score-pill-value" id="topbar-score">0</span>
+      <span class="score-pill-max">/ 120</span>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-tag">Diagnostic gratuit — 5 min</div>
+  <h1>Combien votre site<br><em>vous coûte-t-il</em> chaque mois ?</h1>
+  <p class="hero-sub">20 critères de contrôle + simulateur de revenus perdus. Découvrez exactement ce qui bloque vos demandes en ligne.</p>
+
+  <div class="gauge-wrap">
+    <svg class="gauge-svg" viewBox="-80 -8 240 96">
+      <defs>
+        <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#9A3030"/>
+          <stop offset="55%" stop-color="#B03040"/>
+          <stop offset="100%" stop-color="#2A6B3F"/>
+        </linearGradient>
+      </defs>
+      <path d="M -60 80 A 80 80 0 0 1 140 80" fill="none" stroke="rgba(246,238,226,0.07)" stroke-width="7" stroke-linecap="round"/>
+      <path id="gauge-arc-fill" d="M -60 80 A 80 80 0 0 1 140 80" fill="none" stroke="url(#gaugeGrad)" stroke-width="7" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3"/>
+      <text id="gauge-num" class="gauge-score-text" x="40" y="74" text-anchor="middle">0</text>
+    </svg>
+    <div class="gauge-sub">pts sur 120</div>
+  </div>
+
+  <div class="ca-hero-block">
+    <div class="ca-label">Mon chiffre d'affaires mensuel estimé</div>
+    <div class="ca-slider-row">
+      <input type="range" class="ca-slider" id="ca-slider" min="500" max="20000" step="500" value="3000" oninput="updateCA(this.value)">
+      <span class="ca-value" id="ca-display">3 000 €</span>
+    </div>
+    <div class="ca-hint">Glissez pour personnaliser votre simulation de CA perdu</div>
+  </div>
+
+  <div class="hero-sectors">
+    <span class="sector-tag">Salon &amp; Institut</span>
+    <span class="sector-tag">Coach &amp; Consultant</span>
+    <span class="sector-tag">Artisan</span>
+    <span class="sector-tag">Commerce local</span>
+  </div>
+</section>
+
+<div class="global-progress">
+  <div class="progress-inner">
+    <div class="progress-track"><div class="progress-fill" id="global-progress-fill"></div></div>
+    <div class="progress-info">
+      <span id="progress-text">0 / 24 critères cochés</span>
+      <span id="progress-pct">0 %</span>
+    </div>
+  </div>
+</div>
+
+<main class="main" id="checklist-main">
+  <div class="impact-banner" id="impact-banner">
+    <div class="impact-card loss">
+      <div class="impact-card-label">CA estimé perdu / mois</div>
+      <div class="impact-card-value" id="banner-loss">Cochez les cases</div>
+      <div class="impact-card-sub">à cause des lacunes de votre site</div>
+    </div>
+    <div class="impact-div"></div>
+    <div class="impact-card gain">
+      <div class="impact-card-label">CA récupérable avec Framo</div>
+      <div class="impact-card-value" id="banner-gain">pour révéler</div>
+      <div class="impact-card-sub">en optimisant votre site dès maintenant</div>
+    </div>
+  </div>
+</main>
+
+<footer>© Framo Studio 2025 &nbsp;·&nbsp; Création de sites web pour indépendants &amp; TPE &nbsp;·&nbsp; framostudio.fr</footer>
+
+<script>
+const DATA=[
+  {id:'cat1',num:'01',type:'regular',title:"Clarté de l'offre",sub:"Le visiteur comprend votre métier en moins de 5 secondes",lossWeight:0.28,
+   items:[
+    {text:"Votre activité principale est lisible dès la première ligne — pas après 3 scrolls",lossLabel:"~8 % de bounce en plus"},
+    {text:"Vous précisez à qui vous vous adressez (ex : « pour les particuliers à Nancy »)",lossLabel:"leads non qualifiés"},
+    {text:"Un tarif ou fourchette de prix est visible — 70 % des prospects partent sans prix affiché",lossLabel:"70 % veulent voir un prix"},
+    {text:"Un seul message central — pas trois promesses qui se contredisent sur la même page",lossLabel:"confusion = départ immédiat"}
+   ]},
+  {id:'cat2',num:'02',type:'regular',title:"Confiance & crédibilité",sub:"Les preuves sociales convertissent 4× plus qu'une bonne description",lossWeight:0.22,
+   items:[
+    {text:"Des avis clients sont affichés — 88 % leur font autant confiance qu'à une recommandation personnelle",lossLabel:"88 % consultent les avis"},
+    {text:"Des photos réelles de vous, votre espace ou vos réalisations — pas de stock photos",lossLabel:"méfiance = rebond direct"},
+    {text:"Vos coordonnées sont visibles : téléphone, email ou adresse — l'anonymat fait fuir",lossLabel:"doute sur votre existence"},
+    {text:"Mentions légales et CGV accessibles — obligatoires et signal de sérieux",lossLabel:"signal non-professionnel"}
+   ]},
+  {id:'cat3',num:'03',type:'regular',title:"Appel à l'action (CTA)",sub:"Chaque seconde sans CTA visible = un prospect qui part chez la concurrence",lossWeight:0.25,
+   items:[
+    {text:"Un bouton d'action visible sans scroller — 55 % des visiteurs ne scrollent jamais plus bas",lossLabel:"55 % ne scrollent pas"},
+    {text:"Le CTA est clair : « Réserver », « Obtenir un devis », « Appeler maintenant »",lossLabel:"hésitation = abandon"},
+    {text:"Formulaire de contact en 5 champs max — au-delà, le taux d'abandon monte de 40 %",lossLabel:"+40 % d'abandon formulaire"},
+    {text:"Un moyen de contact direct sur chaque page — pas seulement sur la page Contact",lossLabel:"friction inutile sur le parcours"}
+   ]},
+  {id:'cat4',num:'04',type:'regular',title:"Expérience visiteur",sub:"Un site lent ou non-mobile perd 53 % de ses visiteurs avant même de charger",lossWeight:0.12,
+   items:[
+    {text:"Chargement en moins de 3 s sur mobile — 53 % des visiteurs quittent après 3 s d'attente",lossLabel:"53 % partent après 3 s"},
+    {text:"Lisible sur smartphone sans zoom — 70 % du trafic local vient du mobile",lossLabel:"70 % du trafic = mobile"},
+    {text:"Information clé en 3 clics max — passé ça, 90 % des prospects abandonnent",lossLabel:"90 % abandonnent à 4 clics"},
+    {text:"Pas de pop-up agressive dès l'arrivée — Google pénalise et les prospects fuient",lossLabel:"pénalité SEO + fuite visiteurs"}
+   ]},
+  {id:'cat5',num:'05',type:'regular',title:"Visibilité locale & SEO",sub:"Si Google ne vous trouve pas en premier, votre concurrent prend votre client",lossWeight:0.18,
+   items:[
+    {text:"Fiche Google Business Profile complète avec horaires, photos et description à jour",lossLabel:"invisible sur Google Maps"},
+    {text:"Votre ville ou région mentionnée sur la page d'accueil — SEO local = trafic gratuit",lossLabel:"zéro trafic organique local"},
+    {text:"Le H1 de votre page contient votre métier — c'est le 1er signal que lit Google",lossLabel:"non-indexé localement"},
+    {text:"Votre site apparaît quand on tape votre nom + ville sur Google",lossLabel:"concurrent indexé à votre place"}
+   ]},
+  {id:'cat6',num:'06',type:'ai',title:"Intelligence Artificielle & Automatisation",sub:"Les outils IA qui transforment votre site en commercial 24 h/24 — sans vous",lossWeight:0.20,
+   items:[
+    {text:"Un chatbot IA qualifie vos visiteurs en temps réel et répond à leurs questions à 3 h du matin — sans vous",lossLabel:"leads nocturnes = perdus",aiItem:true},
+    {text:"La génération IA crée automatiquement descriptions de services, posts Instagram et emails client — 10 h/sem économisées",lossLabel:"10 h/sem de production perdue",aiItem:true},
+    {text:"Un formulaire intelligent adapte ses questions selon le profil visiteur pour mieux qualifier avant l'appel",lossLabel:"appels non qualifiés = temps perdu",aiItem:true},
+    {text:"L'IA analyse les comportements visiteurs et suggère les optimisations à fort impact sur votre CA",lossLabel:"décisions prises à l'aveugle",aiItem:true}
+   ]}
+];
+
+const LEVELS=[
+  {min:0.80,label:'Excellent',color:'#2A6B3F',bg:'rgba(42,107,63,0.15)',
+   desc:'Votre site est dans le top 5 % des TPE en ligne. Il travaille activement pour vous chaque nuit.',
+   priority:'Concentrez-vous sur les rares cases non cochées — chacune représente encore des clients captés par la concurrence.',
+   lossRate:0.05,gainRate:0.03},
+  {min:0.60,label:'Bien',color:'#7B6B10',bg:'rgba(123,107,16,0.15)',
+   desc:'Bonne fondation. Mais les lacunes identifiées représentent un manque à gagner concret et chiffrable chaque semaine.',
+   priority:'Attaquez en priorité les catégories Clarté de l\'offre et CTA — ce sont les deux leviers avec le ROI le plus rapide.',
+   lossRate:0.15,gainRate:0.12},
+  {min:0.40,label:'À améliorer',color:'#B05A20',bg:'rgba(176,90,32,0.15)',
+   desc:'Votre site existe mais ne travaille pas pour vous. Pendant que vous lisez ça, un prospect vient de choisir votre concurrent.',
+   priority:'Trois actions immédiates : un message clair en H1 + un CTA visible sans scroll + vos avis Google affichés. Ces 3 points seuls peuvent doubler vos demandes.',
+   lossRate:0.28,gainRate:0.22},
+  {min:0,label:'Urgent',color:'#8C1A2A',bg:'rgba(140,26,42,0.15)',
+   desc:'Votre site vous coûte plus qu\'il ne rapporte. Il génère de la méfiance, pas des demandes.',
+   priority:'Arrêtez de perdre des leads chaque jour. Un site optimisé peut récupérer 30 à 50 % de votre CA manqué dès le premier mois d\'activation.',
+   lossRate:0.40,gainRate:0.32}
+];
+
+const checked={};
+DATA.forEach(cat=>cat.items.forEach((_,i)=>{checked[cat.id+'_'+i]=false}));
+let caMonthly=3000;
+const TOTAL=DATA.reduce((s,c)=>s+c.items.length,0);
+
+function fmt(n){
+  const r=Math.round(n/50)*50;
+  return r>=1000?(r).toLocaleString('fr-FR')+' €':r+' €';
+}
+function fmtCA(n){return n.toLocaleString('fr-FR')+' €'}
+
+function getScore(){return Object.values(checked).filter(Boolean).length*5}
+function getCount(){return Object.values(checked).filter(Boolean).length}
+function getMaxScore(){return TOTAL*5}
+function getCatScore(id){return DATA.find(c=>c.id===id).items.filter((_,i)=>checked[id+'_'+i]).length*5}
+function getCatMax(id){return DATA.find(c=>c.id===id).items.length*5}
+
+function getLevel(score){
+  const pct=score/getMaxScore();
+  return LEVELS.find(l=>pct>=l.min);
+}
+
+function calcImpact(){
+  if(getCount()===0) return {loss:null,gain:null};
+  let totalLoss=0;
+  DATA.forEach(cat=>{
+    const catMax=cat.items.length*5;
+    const catScore=getCatScore(cat.id);
+    const missed=(catMax-catScore)/catMax;
+    totalLoss+=missed*cat.lossWeight;
+  });
+  const loss=Math.round(caMonthly*totalLoss/50)*50;
+  const gain=Math.round(loss*0.75/50)*50;
+  return{loss,gain};
+}
+
+function updateCA(val){
+  caMonthly=parseInt(val);
+  document.getElementById('ca-display').textContent=fmtCA(caMonthly);
+  refreshAll();
+}
+
+function updateGauge(score){
+  document.getElementById('gauge-arc-fill').style.strokeDashoffset=251.3*(1-score/getMaxScore());
+  document.getElementById('gauge-num').textContent=score;
+}
+
+function updateTopBar(score){
+  const el=document.getElementById('topbar-score');
+  el.textContent=score;
+  const lv=getLevel(score);
+  el.style.color=lv?lv.color:'var(--fond)';
+}
+
+function updateLossPill(){
+  const{loss}=calcImpact();
+  const el=document.getElementById('topbar-loss');
+  el.textContent=loss===null?'—':'−'+fmt(loss);
+}
+
+function updateBanner(){
+  const{loss,gain}=calcImpact();
+  const bl=document.getElementById('banner-loss');
+  const bg=document.getElementById('banner-gain');
+  if(loss===null){bl.textContent='Cochez les cases';bg.textContent='pour révéler';return;}
+  bl.textContent='−'+fmt(loss)+'/mois';
+  bg.textContent='+'+fmt(gain)+'/mois';
+}
+
+function updateProgress(){
+  const n=getCount(),p=n/TOTAL*100;
+  document.getElementById('global-progress-fill').style.width=p+'%';
+  document.getElementById('progress-text').textContent=n+' / '+TOTAL+' critères cochés';
+  document.getElementById('progress-pct').textContent=Math.round(p)+' %';
+}
+
+function updateCat(id){
+  const s=getCatScore(id),m=getCatMax(id);
+  const b=document.getElementById('badge-'+id);if(b)b.textContent=s;
+  const p=document.getElementById('catprog-'+id);if(p)p.style.width=(s/m*100)+'%';
+}
+
+function updateResults(){
+  const score=getScore(),lv=getLevel(score);
+  const{loss,gain}=calcImpact();
+  const res=document.getElementById('results-section');
+  if(getCount()>0)res.classList.add('visible');
+
+  document.getElementById('result-big-score').textContent=score;
+  const badge=document.getElementById('result-level-badge');
+  badge.textContent=lv.label;
+  badge.style.background=lv.bg;
+  badge.style.color=lv.color;
+  badge.style.borderColor=lv.color+'50';
+  document.getElementById('result-level-desc').textContent=lv.desc;
+  document.getElementById('priority-text').textContent=lv.priority;
+
+  if(loss!==null){
+    document.getElementById('ca-res-loss').textContent=fmt(loss);
+    document.getElementById('ca-res-gain').textContent=fmt(gain);
+    document.getElementById('ca-res-loss-sub').textContent='soit '+fmt(loss*12)+' sur 12 mois — pour rien';
+    document.getElementById('ca-res-gain-sub').textContent='récupérables dès le 1er mois avec Framo';
+    const hook=document.getElementById('cta-ca-hook');
+    if(hook)hook.textContent='Chaque semaine sans action = '+fmt(loss/4)+' de moins dans votre poche.';
+  }
+
+  DATA.forEach(cat=>{
+    const s=getCatScore(cat.id),m=getCatMax(cat.id);
+    const el=document.getElementById('recap-score-'+cat.id);if(el)el.textContent=s;
+    const be=document.getElementById('recap-bar-'+cat.id);if(be)be.style.width=(s/m*100)+'%';
+  });
+
+  const g1=document.getElementById('ai-gain-1');
+  const g2=document.getElementById('ai-gain-2');
+  if(g1)g1.textContent='+'+fmt(caMonthly*0.08)+'/mois';
+  if(g2)g2.textContent='+'+fmt(caMonthly*0.14)+'/mois';
+}
+
+function refreshAll(){
+  const score=getScore();
+  updateGauge(score);updateTopBar(score);updateLossPill();
+  updateBanner();updateProgress();
+  DATA.forEach(cat=>updateCat(cat.id));
+  updateResults();
+}
+
+function toggle(catId,idx){
+  const key=catId+'_'+idx;
+  checked[key]=!checked[key];
+  const el=document.querySelector('[data-key="'+key+'"]');
+  if(el)el.classList.toggle('checked',checked[key]);
+  refreshAll();
+}
+
+function build(){
+  const main=document.getElementById('checklist-main');
+  DATA.forEach((cat,ci)=>{
+    const isAI=cat.type==='ai';
+    const sec=document.createElement('section');
+    sec.className='category';
+    sec.innerHTML=`
+      ${isAI?'<div class="ai-badge-row"><div class="ai-section-badge"><div class="ai-dot"></div>Intelligence Artificielle &amp; Automatisation</div></div>':''}
+      <div class="cat-header">
+        <div class="cat-num ${isAI?'ai-num-bg':'regular'}">${cat.num}</div>
+        <div class="cat-title-block">
+          <div class="cat-title ${isAI?'ai-t':''}">${cat.title}</div>
+          <div class="cat-sub">${cat.sub}</div>
+        </div>
+        <div class="cat-score-badge ${isAI?'ai-b':'regular'}">
+          <span class="cat-s-num ${isAI?'ai-c':'regular'}" id="badge-${cat.id}">0</span>
+          <span class="cat-s-max">/ ${cat.items.length*5}</span>
+        </div>
+      </div>
+      <div class="cat-prog"><div class="cat-prog-fill ${isAI?'ai-f':'regular'}" id="catprog-${cat.id}"></div></div>
+      ${cat.items.map((item,i)=>`
+        <div class="check-item ${item.aiItem?'ai-item':''}" data-key="${cat.id}_${i}" onclick="toggle('${cat.id}',${i})" style="animation-delay:${(ci*.03+i*.05).toFixed(2)}s">
+          <div class="check-box">
+            <svg class="chk-icon" width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6.5L4.5 9L10 3" stroke="#F6EEE2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="check-content">
+            <div class="check-text">${item.text}</div>
+            <div class="check-meta">
+              <span class="check-pts">+ 5 points si coché</span>
+              <span class="check-loss">${item.lossLabel}</span>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    `;
+    main.appendChild(sec);
+  });
+
+  const res=document.createElement('div');
+  res.id='results-section';
+  res.className='results';
+  res.innerHTML=`
+    <div class="result-header">
+      <div class="result-title">Votre diagnostic complet</div>
+      <div class="result-subtitle">Score + impact financier calculés en temps réel selon vos réponses</div>
+    </div>
+    <div class="score-display">
+      <div class="score-big-num" id="result-big-score">0<span>/ 120</span></div>
+      <div class="score-level-badge" id="result-level-badge">—</div>
+      <div class="score-level-desc" id="result-level-desc">Cochez les cases ci-dessus pour révéler votre diagnostic.</div>
+    </div>
+    <div class="ca-result-grid">
+      <div class="ca-result-card loss-card">
+        <div class="ca-result-label">CA perdu chaque mois</div>
+        <div class="ca-result-num" id="ca-res-loss">—</div>
+        <div class="ca-result-sub" id="ca-res-loss-sub">à cause des lacunes de votre site</div>
+      </div>
+      <div class="ca-result-card gain-card">
+        <div class="ca-result-label">CA récupérable rapidement</div>
+        <div class="ca-result-num" id="ca-res-gain">—</div>
+        <div class="ca-result-sub" id="ca-res-gain-sub">en optimisant avec Framo Studio</div>
+      </div>
+    </div>
+    <div class="ca-note">Simulation basée sur les benchmarks sectoriels TPE/PME (sources : HubSpot, Google, Nielsen) · Données indicatives</div>
+    <div class="cat-recap">
+      ${DATA.map(cat=>{
+        const isAI=cat.type==='ai';
+        return`<div class="recap-card">
+          <div class="recap-card-top">
+            <div><div class="recap-cat-name">${cat.title}</div><div class="recap-cat-sub">${cat.num} · ${cat.items.length*5} pts max</div></div>
+            <div class="recap-score ${isAI?'ai-s':'regular'}" id="recap-score-${cat.id}">0<span class="max">/${cat.items.length*5}</span></div>
+          </div>
+          <div class="recap-bar"><div class="recap-bar-fill ${isAI?'ai-bar':'regular'}" id="recap-bar-${cat.id}" style="width:0%"></div></div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="priority-hint">
+      <div class="priority-hint-title">Feuille de route prioritaire</div>
+      <div class="priority-hint-text" id="priority-text">Continuez à cocher les cases pour obtenir votre feuille de route personnalisée.</div>
+    </div>
+    <div class="ai-upsell">
+      <div class="ai-upsell-header"><div class="ai-upsell-dot"></div><div class="ai-upsell-title">L'IA change la donne pour les TPE — voici ce que vous automatisez dès maintenant</div></div>
+      <div class="ai-upsell-body">Les TPE qui intègrent l'IA sur leur site génèrent en moyenne 30 % de leads supplémentaires sans effort supplémentaire. Un chatbot répond à vos prospects à 2 h du matin, les qualifie, et vous envoie uniquement les contacts chauds — prêts à acheter.</div>
+      <div class="ai-upsell-gains">
+        <div class="ai-gain-item"><div class="ai-gain-val" id="ai-gain-1">—</div><div class="ai-gain-label">CA additionnel estimé via chatbot IA / mois</div></div>
+        <div class="ai-gain-item"><div class="ai-gain-val" id="ai-gain-2">—</div><div class="ai-gain-label">CA additionnel estimé via automatisation complète / mois</div></div>
+      </div>
+    </div>
+    <div class="cta-block">
+      <div class="cta-headline">Arrêtez de perdre des clients chaque jour</div>
+      <div class="cta-sub">Je vous envoie 5 recommandations concrètes et chiffrées pour votre site en 48 h — gratuitement, sans engagement.</div>
+      <div class="cta-ca-hook" id="cta-ca-hook">Commencez dès maintenant.</div>
+      <a href="https://framostudio.fr/audit" class="cta-btn">Obtenir mon audit gratuit <span>→</span></a>
+      <div class="cta-reassurance">Sans engagement · Réponse sous 48 h · Framo Studio · framostudio.fr</div>
+    </div>
+  `;
+  main.appendChild(res);
+}
+
+build();
+</script>
+</body>
+</html>
