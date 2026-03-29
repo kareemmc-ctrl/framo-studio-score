@@ -463,24 +463,11 @@ footer{
       <div class="gate-unlock-item"><span>→</span> 5 recommandations prioritaires</div>
       <div class="gate-unlock-item"><span>◎</span> Potentiel IA pour votre secteur</div>
     </div>
-    <form class="gate-form" id="capture-form" novalidate>
-      <div class="gate-row">
-        <input class="gate-input" type="text" id="g-prenom" placeholder="Votre prénom" required autocomplete="given-name">
-        <input class="gate-input" type="email" id="g-email" placeholder="Votre email professionnel" required autocomplete="email">
-      </div>
-      <button type="submit" class="gate-submit">
-        Recevoir mon rapport gratuit
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-    </form>
-    <p class="gate-rgpd">Vos données sont protégées et ne seront jamais revendues. Vous pouvez vous désabonner à tout moment. <a href="#">Politique de confidentialité</a>.</p>
-
-    <!-- Success state -->
-    <div id="gate-success">
-      <div class="success-icon">✓</div>
-      <div class="success-title">Rapport envoyé !</div>
-      <div class="success-sub">Vérifiez votre boîte mail. Votre analyse complète arrive dans quelques secondes.</div>
-    </div>
+    <a href="https://995fbb08.sibforms.com/serve/MUIFAA8Ls7srfFG6yn94qX-WJMFHvomS8S-9y09GDX88QVQhCU4axENymGpBJJZD4WWBl_XTAOZjnkKcnC73rJlL5c02nXPo9OchSSUlzsUEBOcmw4WHH8XNNMae8n1H_T6I2Y9DdtDYFJ1I02FWemDCblCFi0OZd1lzrgbXt5JbQpTFnK_xYtk8zNe4ff40EkDbudfZckaW2jPw" target="_blank" class="gate-submit" style="display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;">
+      Recevoir mon rapport gratuit
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <p class="gate-rgpd">Vos données sont protégées et ne seront jamais revendues. Vous pouvez vous désabonner à tout moment.</p>
   </div>
 
   <!-- RÉSULTATS COMPLETS (après capture) -->
@@ -814,78 +801,10 @@ document.querySelectorAll('.sector-tab').forEach(tab => {
 });
 
 /* ═══════════════════════════════════════════
-   EMAIL CAPTURE FORM
-   ▶ Remplace l'URL ci-dessous par ton endpoint Brevo :
-     Option A — Brevo API : POST https://api.brevo.com/v3/contacts
-     Option B — Brevo Form embed : copie l'URL de soumission depuis
-                Contacts > Formulaires > [ton formulaire] > Code d'intégration
-     Option C — Pour le rendu académique : laisse tel quel (simulation)
+   EMAIL CAPTURE — via Webhook Make
+   ▶ Remplace MAKE_WEBHOOK_URL par l'URL copiée
+     depuis Make > Webhooks > Custom webhook
 ═══════════════════════════════════════════ */
-const BREVO_LIST_ID = 2; // ← Remplace par l'ID de ta liste Brevo
-const BREVO_API_KEY = 'TA_CLE_API_BREVO'; // ← À remplacer (ne jamais publier en prod)
-
-document.getElementById('capture-form').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const prenom = document.getElementById('g-prenom').value.trim();
-  const email = document.getElementById('g-email').value.trim();
-  if(!prenom || !email) return;
-
-  const btn = this.querySelector('.gate-submit');
-  btn.textContent = 'Envoi en cours…';
-  btn.disabled = true;
-
-  try {
-    /* ── Appel Brevo API ──
-       En production, remplace BREVO_API_KEY par ta vraie clé.
-       Pour GitHub Pages static, envisage un proxy serverless (Netlify Function)
-       ou un service comme Make/n8n comme intermédiaire.
-    */
-    await fetch('https://api.brevo.com/v3/contacts', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'api-key': BREVO_API_KEY,
-      },
-      body: JSON.stringify({
-        email: email,
-        attributes: {
-          PRENOM: prenom,
-          SCORE_SITE: calcScore(),
-          CA_PERDU: calcLoss(),
-          SECTEUR: state.sector,
-          CA_MENSUEL: state.ca,
-        },
-        listIds: [BREVO_LIST_ID],
-        updateEnabled: true,
-      }),
-    });
-  } catch(err) {
-    // Continue même si l'API échoue — affiche les résultats quand même
-    console.warn('Brevo API:', err);
-  }
-
-  // Afficher le state succès
-  state.prenom = prenom;
-  state.captured = true;
-  showResults(prenom, calcScore(), calcLoss());
-});
-
-function showResults(prenom, score, loss) {
-  // Cacher le form, afficher success
-  document.getElementById('capture-form').style.display = 'none';
-  document.getElementById('gate-success').style.display = 'block';
-
-  // Afficher les résultats complets
-  document.getElementById('results-full').style.display = 'block';
-  document.getElementById('r-name').textContent = `Bonjour ${prenom} !`;
-  updateResults(score, loss);
-
-  // Scroll vers les résultats
-  setTimeout(() => {
-    document.getElementById('results-full').scrollIntoView({behavior:'smooth',block:'start'});
-  }, 600);
-}
-
 /* ═══════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════ */
